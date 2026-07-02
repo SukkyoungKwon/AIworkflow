@@ -6,6 +6,7 @@ export interface DelegationInfo {
   definition: string
   humanInvolvement: string
   checkpoint: string
+  example: string
 }
 
 export const delegationLevels: DelegationInfo[] = [
@@ -15,6 +16,7 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI가 규칙적·반복적 작업을 전담 실행',
     humanInvolvement: '결과물 존재·형식만 확인, 세부 검수는 최소',
     checkpoint: '원본 누락, 포맷 오류 여부',
+    example: '1. 자료 수집·분석 — 전사',
   },
   {
     level: 'augment',
@@ -22,6 +24,7 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI가 초안·분석을 만들고 사람이 검토·수정',
     humanInvolvement: '산출물마다 리뷰 후 승인 또는 반려',
     checkpoint: '맥락 적합성, 기존 패턴과의 일관성',
+    example: '1. 그룹핑·분석 · 2. 구조·스펙 초안 · 5. 디자인 시스템 · 6. 화면 전개',
   },
   {
     level: 'amplify',
@@ -29,6 +32,7 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI가 대안의 폭을 넓혀 탐색 범위를 확장',
     humanInvolvement: '여러 안 중 의미 있는 것을 선택',
     checkpoint: '다양성이 실제로 확보됐는지, 변주가 편향되지 않았는지',
+    example: '3. 대표 화면 시안 — 병렬 컨셉 생성',
   },
   {
     level: 'human-own',
@@ -36,8 +40,17 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI는 참고자료만 제공, 결정과 책임은 사람',
     humanInvolvement: '처음부터 끝까지 사람이 주도',
     checkpoint: '판단 근거가 기록(Decision Log)으로 남았는지',
+    example: '1. 방향·우선순위 결정 · 게이트 심사 ①·② · 8. Decision Log 기록',
   },
 ]
+
+export interface DeliverableItem {
+  name: string
+  level: DelegationLevel
+  aiDoes: string
+  humanDoes: string
+  tools: string[]
+}
 
 export interface PromptExample {
   title: string
@@ -50,10 +63,8 @@ export interface WorkflowStage {
   order: number
   kind: 'stage' | 'gate'
   name: string
-  delegation: DelegationLevel
   summary: string
-  aiRole: string
-  humanRole: string
+  deliverables: DeliverableItem[]
   howTo: string[]
   prompts: PromptExample[]
   checkpoint: string
@@ -65,16 +76,43 @@ export const workflows: WorkflowStage[] = [
     order: 1,
     kind: 'stage',
     name: '자료 수집·분석',
-    delegation: 'automate',
     summary: '요구사항, VOC, 경쟁사 자료를 모아 1차로 정리한다.',
-    aiRole: '전사, 1차 요약, 중복 제거, 포맷 통일',
-    humanRole: '편향 검토, 맥락 누락 확인, 우선순위 판단',
+    deliverables: [
+      {
+        name: '전사',
+        level: 'automate',
+        aiDoes: '녹음·회의록을 텍스트로 변환, 오탈자·누락 자체 검수',
+        humanDoes: '전사 내용을 훑어보고 스펙·방향에 반영할 내용인지 1차 판단',
+        tools: ['Clova Note'],
+      },
+      {
+        name: '그룹핑·분석 요약',
+        level: 'augment',
+        aiDoes: '유사 항목 그룹핑, 중복 정리, 패턴 분석 및 1차 요약',
+        humanDoes: '그룹핑·분석 결과 검토, 편향·맥락 누락 확인',
+        tools: ['ChatGPT / Claude'],
+      },
+      {
+        name: '방향·우선순위 결정',
+        level: 'human-own',
+        aiDoes: '판단 근거가 될 자료·패턴 요약 제공',
+        humanDoes: '다음 단계로 넘어갈 방향과 우선순위를 최종 결정',
+        tools: ['Notion'],
+      },
+    ],
     howTo: [
+      '요구사항 수집 — 위키·문서에 흩어진 요구사항을 모아 마크다운 한 문서로 정리해 AI에 전달',
       '인터뷰 녹음/회의록을 AI에게 전사·요약 요청',
       '여러 소스(VOC, 경쟁사 리뷰, 요구사항 문서)를 한 표로 통합',
       "AI가 뽑은 패턴에 대해 '왜 그렇게 판단했는지' 되물어 검증",
     ],
     prompts: [
+      {
+        title: '요구사항 문서 마크다운 정리',
+        when: '위키·문서 여러 페이지에 흩어진 요구사항을 AI에 넘기기 전, 하나의 입력으로 합칠 때',
+        prompt:
+          "아래는 서로 다른 위키/문서 페이지에서 가져온 내용이야. AI가 참고하기 쉬운 하나의 마크다운 문서로 정리해줘.\n\n1) 문서(페이지)별로 ## 제목으로 구분하고 원래 출처(문서명 또는 링크)를 표기\n2) 각 문서에서 핵심 요구사항·결정사항만 불릿으로 요약 (배경 설명은 생략)\n3) 서로 다른 문서에서 내용이 겹치거나 상충하면 '⚠️ 충돌' 섹션에 따로 모아줘\n4) 없는 내용은 만들어내지 말고 원문 그대로만 사용해줘\n\n[위키 페이지1 붙여넣기]\n[문서2 붙여넣기]\n[문서3 붙여넣기]",
+      },
       {
         title: '인터뷰 전사 요약',
         when: '인터뷰/회의 녹취록을 정리할 때',
@@ -100,14 +138,35 @@ export const workflows: WorkflowStage[] = [
     id: 'structure',
     order: 2,
     kind: 'stage',
-    name: '구조 정의',
-    delegation: 'augment',
-    summary: '메뉴 구조와 화면별 상세 기능을 정의한다.',
-    aiRole: '유사 서비스 사례 조사, 메뉴·기능 초안 제시',
-    humanRole: '비즈니스 우선순위·범위 최종 결정',
+    name: '구조·스펙 정의',
+    summary: '메뉴 구조를 정의하고, 화면별 상세 기능 스펙까지 구체화한다.',
+    deliverables: [
+      {
+        name: 'IA·기능 구조 초안',
+        level: 'augment',
+        aiDoes: '유사 서비스 사례 조사, 메뉴·기능 구조 초안 제시',
+        humanDoes: '구조 초안 검토·수정',
+        tools: ['ChatGPT / Claude'],
+      },
+      {
+        name: '상세 스펙',
+        level: 'augment',
+        aiDoes: '화면별 입력값·상태·예외 처리를 포함한 상세 스펙 초안 작성',
+        humanDoes: '스펙의 예외 케이스 검토',
+        tools: ['ChatGPT / Claude', 'Notion'],
+      },
+      {
+        name: '범위·우선순위 확정',
+        level: 'human-own',
+        aiDoes: '기능별 참고 정보(유사 사례, 난이도 추정) 제공',
+        humanDoes: '비즈니스 우선순위·최종 범위 결정',
+        tools: ['Notion'],
+      },
+    ],
     howTo: [
       '요구사항 정리본을 바탕으로 IA(정보구조) 초안 2안 요청',
       '화면별 필수/향후 기능 구분 요청',
+      '확정된 기능마다 입력값·상태·예외 처리까지 포함한 상세 스펙 작성 요청',
       '결정된 범위만 반영하고 나머지는 별도 백로그로 분리',
     ],
     prompts: [
@@ -118,23 +177,42 @@ export const workflows: WorkflowStage[] = [
           '다음 제품 요구사항과 사용자 목표를 바탕으로 정보구조(IA) 초안을 2가지 안으로 제시해줘. 각 안마다 1) 메뉴 트리(3단계까지) 2) 이 구조를 선택한 이유 3) 트레이드오프(장단점)를 표로 정리해줘.\n\n[요구사항 요약 붙여넣기]',
       },
       {
-        title: '기능 명세 초안',
+        title: '기능 목록 초안',
         when: '화면별 상세 기능을 정의할 때',
         prompt:
           "아래 메뉴 항목 각각에 대해 1) 핵심 기능 목록 2) 필수(MVP) vs 향후(Nice to have) 구분 3) 참고할 만한 유사 서비스 패턴을 정리해줘. 확신이 없는 부분은 '확인 필요'로 표시해줘.\n\n[메뉴 목록]",
       },
+      {
+        title: '화면별 상세 스펙 작성',
+        when: '기능이 확정된 후, 개발이 바로 참고할 수 있는 상세 스펙 문서를 만들 때',
+        prompt:
+          "아래 화면과 확정된 기능 목록을 바탕으로 상세 스펙을 표로 정리해줘. 컬럼: 1) 입력 필드와 유효성 검사 규칙 2) 화면 상태(기본/로딩/에러/빈 상태) 3) 사용자 액션별 동작(성공/실패 처리 포함) 4) 연동이 필요한 API 또는 데이터 5) 예외·엣지 케이스. 확실하지 않은 부분은 '기획 확인 필요'로 표시하고 임의로 지어내지 마.\n\n[화면 이름]\n[확정된 기능 목록]",
+      },
     ],
-    checkpoint: '비즈니스 목표와의 정합성, 빠진 예외 케이스',
+    checkpoint: '비즈니스 목표와의 정합성, 빠진 예외 케이스, 스펙 누락 여부',
   },
   {
     id: 'concept',
     order: 3,
     kind: 'stage',
     name: '대표 화면 시안',
-    delegation: 'amplify',
     summary: '대표 화면을 여러 구조·톤으로 병렬 탐색한다.',
-    aiRole: '3~5개의 구조·톤 병렬 생성',
-    humanRole: '목표·신뢰·접근성 기준으로 선별',
+    deliverables: [
+      {
+        name: '병렬 컨셉',
+        level: 'amplify',
+        aiDoes: '3~5개의 구조·톤을 병렬로 생성',
+        humanDoes: '컨셉 다양성·완성도 확인',
+        tools: ['Figma (Make)'],
+      },
+      {
+        name: '최종 방향 선별',
+        level: 'human-own',
+        aiDoes: '컨셉별 리스크·트레이드오프 정리',
+        humanDoes: '목표·신뢰·접근성 기준으로 최종 선별',
+        tools: ['Notion'],
+      },
+    ],
     howTo: [
       '동일 화면에 대해 서로 다른 접근의 안을 병렬로 요청',
       '안끼리 실제로 다른지, 변주가 편향되지 않았는지 확인',
@@ -161,10 +239,23 @@ export const workflows: WorkflowStage[] = [
     order: 4,
     kind: 'gate',
     name: '게이트 심사 ①',
-    delegation: 'human-own',
     summary: '대표 시안을 최종 확정하고 판단 근거를 기록한다.',
-    aiRole: '후보별 장단점 비교표 초안 작성',
-    humanRole: '최종 확정, 판단 근거를 Decision Log에 기록',
+    deliverables: [
+      {
+        name: '비교표',
+        level: 'augment',
+        aiDoes: '후보별 장단점 비교표 초안 작성',
+        humanDoes: '비교표 내용 검증',
+        tools: ['ChatGPT / Claude'],
+      },
+      {
+        name: '최종 확정',
+        level: 'human-own',
+        aiDoes: '결정에는 관여하지 않음, 참고자료만 제공',
+        humanDoes: '최종 확정, 판단 근거를 Decision Log에 기록',
+        tools: ['Notion'],
+      },
+    ],
     howTo: [
       '비교표를 참고하되 최종 결정은 반드시 사람이 내림',
       '탈락한 안도 왜 버렸는지 이유를 남김',
@@ -185,10 +276,23 @@ export const workflows: WorkflowStage[] = [
     order: 5,
     kind: 'stage',
     name: '디자인 시스템 구축',
-    delegation: 'augment',
     summary: '확정 시안을 토대로 토큰·컴포넌트 규칙을 만든다.',
-    aiRole: '확정 시안에서 토큰·컴포넌트 후보 추출',
-    humanRole: '원칙·예외·금지 패턴 확정',
+    deliverables: [
+      {
+        name: '토큰·컴포넌트 후보',
+        level: 'augment',
+        aiDoes: '확정 시안에서 토큰·컴포넌트 후보 추출',
+        humanDoes: '기존 값과의 통합 여부 검토',
+        tools: ['Figma'],
+      },
+      {
+        name: '원칙·금지 패턴',
+        level: 'human-own',
+        aiDoes: '흔한 금지 패턴 예시 후보 제시',
+        humanDoes: '원칙·예외·금지 패턴 최종 확정',
+        tools: ['Notion'],
+      },
+    ],
     howTo: [
       '확정 시안에서 색상/타이포/간격 토큰 후보 추출',
       '기존 값과 통합 가능한 토큰은 병합 제안받기',
@@ -215,10 +319,23 @@ export const workflows: WorkflowStage[] = [
     order: 6,
     kind: 'stage',
     name: '전체 화면 전개',
-    delegation: 'augment',
     summary: '분석 자료와 디자인 시스템을 기반으로 나머지 화면을 만든다.',
-    aiRole: '시스템 규칙에 맞춰 화면 대량 생성',
-    humanRole: '일관성·엣지케이스 검수',
+    deliverables: [
+      {
+        name: '화면 대량 생성',
+        level: 'augment',
+        aiDoes: '디자인 시스템 규칙에 맞춰 화면 초안 대량 생성',
+        humanDoes: '일관성·엣지케이스 검수',
+        tools: ['Figma (Make)', 'Claude Code'],
+      },
+      {
+        name: '엣지케이스 점검',
+        level: 'augment',
+        aiDoes: '빈 상태/로딩/에러 등 누락된 상태를 점검하고 제안',
+        humanDoes: '적용 여부 최종 판단',
+        tools: ['ChatGPT / Claude'],
+      },
+    ],
     howTo: [
       '디자인 시스템 규칙과 기능 명세를 함께 제공',
       '시스템에 없는 새 패턴은 만들지 말고 논의 대상으로 표시하도록 지시',
@@ -245,10 +362,23 @@ export const workflows: WorkflowStage[] = [
     order: 7,
     kind: 'gate',
     name: '게이트 심사 ②',
-    delegation: 'human-own',
     summary: '7개 기준으로 전체 결과물을 종합 심사한다.',
-    aiRole: '게이트별 체크리스트 초안 작성',
-    humanRole: '최종 판정, 배포 승인',
+    deliverables: [
+      {
+        name: '게이트 체크리스트',
+        level: 'augment',
+        aiDoes: 'UX·Trust·Control·A11y·Brand·Model·Business 기준 체크리스트 초안 작성',
+        humanDoes: '체크리스트 항목 검증',
+        tools: ['ChatGPT / Claude'],
+      },
+      {
+        name: '배포 승인',
+        level: 'human-own',
+        aiDoes: '결정에는 관여하지 않음, 참고자료만 제공',
+        humanDoes: '최종 판정, 배포 승인',
+        tools: ['Notion'],
+      },
+    ],
     howTo: [
       'UX·Trust·Control·Accessibility·Brand·Model Behavior·Business 7개 기준으로 점검',
       '기준 미달 항목은 예외 승인 사유를 남기고 통과시키지 않음',
@@ -269,10 +399,23 @@ export const workflows: WorkflowStage[] = [
     order: 8,
     kind: 'stage',
     name: '출시·기록',
-    delegation: 'human-own',
     summary: '출시하고 결정 이유를 지식 기반에 남긴다.',
-    aiRole: '변경 요약, 승인/탈락 이유 문서화 초안',
-    humanRole: '기록 확정, 다음 프로젝트 반영',
+    deliverables: [
+      {
+        name: '릴리즈 노트',
+        level: 'augment',
+        aiDoes: '사용자 관점 변경사항 요약 초안 작성',
+        humanDoes: '표현·정확성 확인 후 게시',
+        tools: ['ChatGPT / Claude'],
+      },
+      {
+        name: 'Decision Log 기록',
+        level: 'human-own',
+        aiDoes: '결정 내역을 Decision Log 형식으로 종합 정리(초안)',
+        humanDoes: '기록 확정, 다음 프로젝트에 반영',
+        tools: ['Notion'],
+      },
+    ],
     howTo: [
       '사용자 관점 릴리즈 노트를 AI 초안으로 작성',
       '프로젝트 전체 결정 내역을 Decision Log로 종합',

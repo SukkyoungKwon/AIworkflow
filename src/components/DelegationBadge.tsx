@@ -7,7 +7,14 @@ const STYLES: Record<DelegationLevel, string> = {
   'human-own': 'bg-white text-gray-600 border-gray-300',
 }
 
-const LABELS: Record<DelegationLevel, string> = {
+const DOT_STYLES: Record<DelegationLevel, string> = {
+  automate: 'bg-indigo-600',
+  augment: 'bg-indigo-300',
+  amplify: 'bg-indigo-300',
+  'human-own': 'bg-gray-300',
+}
+
+export const LABELS: Record<DelegationLevel, string> = {
   automate: 'Automate',
   augment: 'Augment',
   amplify: 'Amplify',
@@ -21,5 +28,14 @@ export function DelegationBadge({ level }: { level: DelegationLevel }) {
     >
       {LABELS[level]}
     </span>
+  )
+}
+
+export function DelegationDot({ level }: { level: DelegationLevel }) {
+  return (
+    <span
+      title={LABELS[level]}
+      className={`inline-block h-2 w-2 rounded-full ${DOT_STYLES[level]}`}
+    />
   )
 }

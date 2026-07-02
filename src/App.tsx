@@ -1,9 +1,15 @@
 import { useState } from 'react'
 import { Sparkles, Info } from 'lucide-react'
-import { workflows } from './data/workflows'
-import { DelegationBadge } from './components/DelegationBadge'
+import { workflows, type DelegationLevel } from './data/workflows'
+import { DelegationDot } from './components/DelegationBadge'
 import { WorkflowDetail } from './components/WorkflowDetail'
 import { DelegationGuide } from './components/DelegationGuide'
+
+const LEVEL_ORDER: DelegationLevel[] = ['automate', 'augment', 'amplify', 'human-own']
+
+function uniqueLevels(levels: DelegationLevel[]) {
+  return LEVEL_ORDER.filter((l) => levels.includes(l))
+}
 
 function App() {
   const [selectedId, setSelectedId] = useState(workflows[0].id)
@@ -57,8 +63,10 @@ function App() {
                     {w.kind === 'gate' ? 'GATE' : w.order} · {w.name}
                   </span>
                 </div>
-                <div className="mt-1.5">
-                  <DelegationBadge level={w.delegation} />
+                <div className="mt-1.5 flex items-center gap-1">
+                  {uniqueLevels(w.deliverables.map((d) => d.level)).map((level) => (
+                    <DelegationDot key={level} level={level} />
+                  ))}
                 </div>
               </button>
             ))}

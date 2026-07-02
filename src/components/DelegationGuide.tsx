@@ -15,6 +15,7 @@ export function DelegationGuide() {
             <p className="mt-2 text-sm text-gray-800">{d.definition}</p>
             <p className="mt-1 text-xs text-gray-500">개입 — {d.humanInvolvement}</p>
             <p className="mt-1 text-xs text-gray-400">확인 — {d.checkpoint}</p>
+            <p className="mt-1 text-xs text-gray-400">예시 — {d.example}</p>
           </div>
         ))}
       </div>
