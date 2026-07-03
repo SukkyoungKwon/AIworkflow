@@ -1,4 +1,4 @@
-import { Bot, User, ListChecks, Wrench } from 'lucide-react'
+import { Bot, User, ListChecks, Wrench, ArrowDownToLine } from 'lucide-react'
 import type { WorkflowStage } from '../data/workflows'
 import { DelegationBadge } from './DelegationBadge'
 import { PromptCard } from './PromptCard'
@@ -11,6 +11,14 @@ export function WorkflowDetail({ stage }: { stage: WorkflowStage }) {
       </span>
       <h1 className="text-2xl font-semibold text-gray-900">{stage.name}</h1>
       <p className="mt-1.5 text-sm text-gray-600">{stage.summary}</p>
+
+      <div className="mt-3 flex items-start gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+        <ArrowDownToLine size={14} className="shrink-0 mt-0.5 text-gray-400" />
+        <p className="text-xs text-gray-600">
+          <span className="font-medium text-gray-500">이전 단계에서 받는 것 — </span>
+          {stage.input}
+        </p>
+      </div>
 
       <div className="mt-6">
         <h2 className="text-sm font-semibold text-gray-900 mb-2">작업별 AI·사람 역할</h2>

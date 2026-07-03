@@ -40,7 +40,7 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI는 참고자료만 제공, 결정과 책임은 사람',
     humanInvolvement: '처음부터 끝까지 사람이 주도',
     checkpoint: '판단 근거가 기록(Decision Log)으로 남았는지',
-    example: '1. 방향·우선순위 결정 · 게이트 심사 ①·② · 8. Decision Log 기록',
+    example: '2. PRD 목표·우선순위 확정 · 게이트 심사 ①·② · 8. Decision Log 기록',
   },
 ]
 
@@ -64,6 +64,7 @@ export interface WorkflowStage {
   kind: 'stage' | 'gate'
   name: string
   summary: string
+  input: string
   deliverables: DeliverableItem[]
   howTo: string[]
   prompts: PromptExample[]
@@ -77,6 +78,7 @@ export const workflows: WorkflowStage[] = [
     kind: 'stage',
     name: '자료 수집·분석',
     summary: '요구사항, VOC, 경쟁사 자료를 모아 1차로 정리한다.',
+    input: '(시작 단계) 인터뷰·회의 녹음, 위키·문서, VOC, 경쟁사 자료 등 원시 자료',
     deliverables: [
       {
         name: '전사',
@@ -91,13 +93,6 @@ export const workflows: WorkflowStage[] = [
         aiDoes: '유사 항목 그룹핑, 중복 정리, 패턴 분석 및 1차 요약',
         humanDoes: '그룹핑·분석 결과 검토, 편향·맥락 누락 확인',
         tools: ['ChatGPT / Claude'],
-      },
-      {
-        name: '방향·우선순위 결정',
-        level: 'human-own',
-        aiDoes: '판단 근거가 될 자료·패턴 요약 제공',
-        humanDoes: '다음 단계로 넘어갈 방향과 우선순위를 최종 결정',
-        tools: ['Notion'],
       },
     ],
     howTo: [
@@ -139,8 +134,16 @@ export const workflows: WorkflowStage[] = [
     order: 2,
     kind: 'stage',
     name: '구조·스펙 정의',
-    summary: '메뉴 구조를 정의하고, 화면별 상세 기능 스펙까지 구체화한다.',
+    summary: 'PRD부터 정보구조, 유저플로우, 화면별 기능명세까지 — 화면을 그리기 전 모든 것을 정리한다.',
+    input: 'Step 1의 「그룹핑·분석 요약」 — 검토를 마친 리서치 인사이트',
     deliverables: [
+      {
+        name: 'PRD 초안',
+        level: 'augment',
+        aiDoes: '자료 수집 결과를 바탕으로 목표·배경·문제·성공지표 초안 작성',
+        humanDoes: '목표·성공지표·우선순위 확정',
+        tools: ['ChatGPT / Claude'],
+      },
       {
         name: 'IA·기능 구조 초안',
         level: 'augment',
@@ -149,7 +152,14 @@ export const workflows: WorkflowStage[] = [
         tools: ['ChatGPT / Claude'],
       },
       {
-        name: '상세 스펙',
+        name: '유저플로우',
+        level: 'augment',
+        aiDoes: '핵심 시나리오별 사용자 흐름(단계·분기) 초안 작성',
+        humanDoes: '실제 사용 맥락과 맞는지, 빠진 분기 없는지 검토',
+        tools: ['ChatGPT / Claude'],
+      },
+      {
+        name: '화면별 기능명세서',
         level: 'augment',
         aiDoes: '화면별 입력값·상태·예외 처리를 포함한 상세 스펙 초안 작성',
         humanDoes: '스펙의 예외 케이스 검토',
@@ -164,17 +174,31 @@ export const workflows: WorkflowStage[] = [
       },
     ],
     howTo: [
+      '자료 수집 결과를 바탕으로 PRD(목표·배경·문제·성공지표) 초안 요청',
       '요구사항 정리본을 바탕으로 IA(정보구조) 초안 2안 요청',
+      '핵심 시나리오별 유저플로우 초안 요청',
       '화면별 필수/향후 기능 구분 요청',
       '확정된 기능마다 입력값·상태·예외 처리까지 포함한 상세 스펙 작성 요청',
       '결정된 범위만 반영하고 나머지는 별도 백로그로 분리',
     ],
     prompts: [
       {
+        title: 'PRD 초안 생성',
+        when: '리서치 결과를 바탕으로 제품 요구사항 문서를 처음 만들 때',
+        prompt:
+          "다음 리서치 결과를 바탕으로 PRD 초안을 작성해줘. 포함할 항목: 1) 제품 목표 2) 배경(왜 지금 필요한가) 3) 해결하려는 문제 4) 성공 지표(정량적으로) 5) 범위에서 제외하는 것. 추측이 필요한 부분은 '가정'이라고 표시하고 근거를 남겨줘.\n\n[리서치 결과 요약 붙여넣기]",
+      },
+      {
         title: 'IA 초안 생성',
         when: '메뉴 구조 초안이 필요할 때',
         prompt:
           '다음 제품 요구사항과 사용자 목표를 바탕으로 정보구조(IA) 초안을 2가지 안으로 제시해줘. 각 안마다 1) 메뉴 트리(3단계까지) 2) 이 구조를 선택한 이유 3) 트레이드오프(장단점)를 표로 정리해줘.\n\n[요구사항 요약 붙여넣기]',
+      },
+      {
+        title: '유저플로우 초안 생성',
+        when: '핵심 시나리오의 사용자 흐름을 정리할 때',
+        prompt:
+          '다음 핵심 시나리오에 대해 사용자 흐름을 단계별로 정리해줘. 각 단계마다 1) 사용자 행동 2) 시스템 반응 3) 성공/실패 시 분기를 표시하고, 마지막에 놓치기 쉬운 예외 분기(에러, 취소, 뒤로가기 등)를 별도로 나열해줘.\n\n[핵심 시나리오 설명]\n[관련 IA/화면 목록]',
       },
       {
         title: '기능 목록 초안',
@@ -189,19 +213,27 @@ export const workflows: WorkflowStage[] = [
           "아래 화면과 확정된 기능 목록을 바탕으로 상세 스펙을 표로 정리해줘. 컬럼: 1) 입력 필드와 유효성 검사 규칙 2) 화면 상태(기본/로딩/에러/빈 상태) 3) 사용자 액션별 동작(성공/실패 처리 포함) 4) 연동이 필요한 API 또는 데이터 5) 예외·엣지 케이스. 확실하지 않은 부분은 '기획 확인 필요'로 표시하고 임의로 지어내지 마.\n\n[화면 이름]\n[확정된 기능 목록]",
       },
     ],
-    checkpoint: '비즈니스 목표와의 정합성, 빠진 예외 케이스, 스펙 누락 여부',
+    checkpoint: '목표·비즈니스와의 정합성, 빠진 예외·분기 케이스, 스펙 누락 여부',
   },
   {
     id: 'concept',
     order: 3,
     kind: 'stage',
     name: '대표 화면 시안',
-    summary: '대표 화면을 여러 구조·톤으로 병렬 탐색한다.',
+    summary: '스펙을 바탕으로 대표 화면의 구조(와이어프레임)를 먼저 잡고, 그 위에 여러 톤·스타일을 병렬 탐색한다.',
+    input: 'Step 2의 「화면별 기능명세서」·「유저플로우」·「범위·우선순위 확정」 결과',
     deliverables: [
+      {
+        name: '대표 화면 와이어프레임',
+        level: 'augment',
+        aiDoes: 'IA·유저플로우·기능명세를 바탕으로 대표 화면의 구조·레이아웃(정보 위계) 초안 작성',
+        humanDoes: '구조가 사용자 목표에 맞는지, 빠진 정보·기능 없는지 검토',
+        tools: ['Figma (Make)'],
+      },
       {
         name: '병렬 컨셉',
         level: 'amplify',
-        aiDoes: '3~5개의 구조·톤을 병렬로 생성',
+        aiDoes: '확정된 구조 위에 3~5개의 톤·스타일을 병렬로 생성',
         humanDoes: '컨셉 다양성·완성도 확인',
         tools: ['Figma (Make)'],
       },
@@ -214,16 +246,23 @@ export const workflows: WorkflowStage[] = [
       },
     ],
     howTo: [
-      '동일 화면에 대해 서로 다른 접근의 안을 병렬로 요청',
+      '스펙·유저플로우를 바탕으로 대표 화면의 와이어프레임(구조)부터 요청',
+      '확정된 구조 위에 서로 다른 톤의 안을 병렬로 요청',
       '안끼리 실제로 다른지, 변주가 편향되지 않았는지 확인',
       '확정 전 AI에게 비판적 리뷰어 역할로 반박 요청',
     ],
     prompts: [
       {
-        title: '병렬 컨셉 생성',
-        when: '한 화면에 대해 여러 접근을 빠르게 비교하고 싶을 때',
+        title: '대표 화면 와이어프레임 생성',
+        when: '스펙을 화면 구조로 처음 옮길 때',
         prompt:
-          '다음 화면의 목적과 핵심 사용자 목표를 바탕으로 서로 다른 접근의 UX 컨셉 3가지를 제시해줘. 각 컨셉마다 1) 핵심 레이아웃 아이디어 2) 강조하는 사용자 가치 3) 예상 리스크(신뢰/접근성/구현 난이도)를 표로 정리해줘. 세 컨셉은 서로 명확히 달라야 해.\n\n[화면 목적 / 사용자 목표]',
+          '아래 화면의 기능 명세와 유저플로우를 바탕으로 와이어프레임 수준의 구조를 제안해줘. 1) 화면에 들어갈 정보·기능 블록을 우선순위 순으로 나열 2) 레이아웃 배치(상단/본문/하단 등)를 텍스트로 설명 3) 이 구조를 선택한 이유. 비주얼 스타일이나 색상은 아직 언급하지 말고 구조에만 집중해줘.\n\n[화면 기능 명세]\n[관련 유저플로우]',
+      },
+      {
+        title: '병렬 컨셉 생성',
+        when: '구조가 확정된 화면에 여러 톤·스타일을 빠르게 비교하고 싶을 때',
+        prompt:
+          '다음 화면의 확정된 구조(와이어프레임)와 핵심 사용자 목표를 바탕으로 서로 다른 톤의 UX 컨셉 3가지를 제시해줘. 각 컨셉마다 1) 톤·스타일 방향 2) 강조하는 사용자 가치 3) 예상 리스크(신뢰/접근성/구현 난이도)를 표로 정리해줘. 구조는 유지하고 톤만 다르게 가야 해.\n\n[확정된 와이어프레임/구조]\n[사용자 목표]',
       },
       {
         title: '반대 관점 리뷰',
@@ -232,7 +271,7 @@ export const workflows: WorkflowStage[] = [
           '방금 제시한 안에 대해 비판적인 리뷰어 역할로 반박해줘. 1) 이 안이 실패할 수 있는 시나리오 2) 접근성 관점에서 놓친 것 3) 이 안을 선택하지 말아야 할 이유를 각각 최소 2개씩 제시해줘.',
       },
     ],
-    checkpoint: '다양성이 실제로 확보됐는지, 안끼리 겹치지 않는지',
+    checkpoint: '구조가 스펙을 다 반영했는지, 다양성이 실제로 확보됐는지, 안끼리 겹치지 않는지',
   },
   {
     id: 'gate-1',
@@ -240,6 +279,7 @@ export const workflows: WorkflowStage[] = [
     kind: 'gate',
     name: '게이트 심사 ①',
     summary: '대표 시안을 최종 확정하고 판단 근거를 기록한다.',
+    input: 'Step 3의 「병렬 컨셉」 후보들과 각 컨셉의 리스크·트레이드오프 정리',
     deliverables: [
       {
         name: '비교표',
@@ -277,6 +317,7 @@ export const workflows: WorkflowStage[] = [
     kind: 'stage',
     name: '디자인 시스템 구축',
     summary: '확정 시안을 토대로 토큰·컴포넌트 규칙을 만든다.',
+    input: '게이트①에서 확정된 대표 화면 시안과 Decision Log',
     deliverables: [
       {
         name: '토큰·컴포넌트 후보',
@@ -320,6 +361,7 @@ export const workflows: WorkflowStage[] = [
     kind: 'stage',
     name: '전체 화면 전개',
     summary: '분석 자료와 디자인 시스템을 기반으로 나머지 화면을 만든다.',
+    input: 'Step 5의 디자인 시스템(토큰·컴포넌트·금지 패턴) + Step 2의 화면별 기능명세서',
     deliverables: [
       {
         name: '화면 대량 생성',
@@ -363,6 +405,7 @@ export const workflows: WorkflowStage[] = [
     kind: 'gate',
     name: '게이트 심사 ②',
     summary: '7개 기준으로 전체 결과물을 종합 심사한다.',
+    input: 'Step 6에서 완성된 전체 화면',
     deliverables: [
       {
         name: '게이트 체크리스트',
@@ -400,6 +443,7 @@ export const workflows: WorkflowStage[] = [
     kind: 'stage',
     name: '출시·기록',
     summary: '출시하고 결정 이유를 지식 기반에 남긴다.',
+    input: '게이트②를 통과한 최종 결과물과 배포 승인',
     deliverables: [
       {
         name: '릴리즈 노트',
