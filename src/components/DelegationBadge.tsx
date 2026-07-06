@@ -1,17 +1,18 @@
 import type { DelegationLevel } from '../data/workflows'
 
 const STYLES: Record<DelegationLevel, string> = {
-  automate: 'bg-[var(--brand)] text-white border-[var(--brand)]',
-  augment: 'bg-[var(--brand-light)] text-[var(--brand-dark)] border-[var(--brand-border)]',
-  amplify: 'bg-[var(--brand-light)] text-[var(--brand-dark)] border-[var(--brand-border)] border-dashed',
-  'human-own': 'bg-white text-gray-600 border-gray-300',
+  automate: 'bg-[var(--lvl-automate)] text-white border-[var(--lvl-automate)]',
+  augment: 'bg-[var(--lvl-augment-light)] text-[var(--lvl-augment)] border-[var(--lvl-augment-border)]',
+  amplify:
+    'bg-[var(--lvl-amplify-light)] text-[var(--lvl-amplify)] border-[var(--lvl-amplify-border)] border-dashed',
+  'human-own': 'bg-[var(--lvl-human)] text-white border-[var(--lvl-human)]',
 }
 
 const DOT_STYLES: Record<DelegationLevel, string> = {
-  automate: 'bg-[var(--brand)]',
-  augment: 'bg-[var(--brand-border)]',
-  amplify: 'bg-[var(--brand-border)]',
-  'human-own': 'bg-gray-300',
+  automate: 'bg-[var(--lvl-automate)]',
+  augment: 'bg-[var(--lvl-augment)]',
+  amplify: 'bg-[var(--lvl-amplify)]',
+  'human-own': 'bg-[var(--lvl-human)]',
 }
 
 export const LABELS: Record<DelegationLevel, string> = {

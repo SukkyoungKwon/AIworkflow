@@ -17,7 +17,7 @@ export function StepBadge({
       className={`inline-flex ${dims} shrink-0 items-center justify-center rounded-full font-semibold text-white shadow-sm ${
         isGate
           ? 'bg-gradient-to-br from-slate-500 to-slate-700'
-          : 'bg-gradient-to-br from-[var(--badge-blue)] to-[var(--badge-green)]'
+          : 'badge-gradient'
       }`}
     >
       {isGate ? (
