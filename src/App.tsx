@@ -54,7 +54,7 @@ function App() {
       </aside>
 
       <div className="min-h-screen md:ml-64">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:px-16 md:py-12">
+        <div className="px-4 py-6 md:px-16 md:py-12">
           <div className="mb-4 flex justify-end">
             <button
               type="button"
