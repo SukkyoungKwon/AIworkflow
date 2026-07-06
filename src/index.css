@@ -1,13 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #fafafa;
+  --color-bg: #f4f6fc;
   --color-surface: #ffffff;
-  --color-text: #18181b;
-  --color-text-muted: #6b7280;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
   --color-border: #e5e7eb;
-  --color-info: #6366f1;
-  --color-info-bg: rgba(99, 102, 241, 0.08);
+  --color-info: #03c75a;
+  --color-info-bg: rgba(3, 199, 90, 0.08);
+
+  /* Naver-green brand ramp */
+  --brand: #03c75a;
+  --brand-glow: #05e070;
+  --brand-dark: #029645;
+  --brand-light: #eafcf1;
+  --brand-border: #8ee2ac;
+
+  /* Blue -> green step-badge gradient */
+  --badge-blue: #4285f4;
+  --badge-green: #05d467;
 }
 
 * {
@@ -18,5 +29,13 @@ body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: system-ui, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Apple SD Gothic Neo',
+    'Malgun Gothic',
+    'Noto Sans KR',
+    sans-serif;
 }

@@ -23,7 +23,7 @@ export function PromptCard({ prompt }: { prompt: PromptExample }) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-gray-100">
         <div>
           <div className="font-medium text-sm text-gray-900">{prompt.title}</div>

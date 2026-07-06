@@ -16,7 +16,7 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI가 규칙적·반복적 작업을 전담 실행',
     humanInvolvement: '결과물 존재·형식만 확인, 세부 검수는 최소',
     checkpoint: '원본 누락, 포맷 오류 여부',
-    example: '1. 자료 수집·분석 — 전사',
+    example: '1. 지식 문서 틀 준비 · 2. 자료 수집·분석 — 전사',
   },
   {
     level: 'augment',
@@ -24,7 +24,7 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI가 초안·분석을 만들고 사람이 검토·수정',
     humanInvolvement: '산출물마다 리뷰 후 승인 또는 반려',
     checkpoint: '맥락 적합성, 기존 패턴과의 일관성',
-    example: '1. 그룹핑·분석 · 2. 구조·스펙 초안 · 5. 디자인 시스템 · 6. 화면 전개',
+    example: '1. Risk Register · 2. 그룹핑·분석 · 3. 구조·스펙 초안 · 6. 디자인 시스템 · 7. 화면 전개',
   },
   {
     level: 'amplify',
@@ -32,7 +32,7 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI가 대안의 폭을 넓혀 탐색 범위를 확장',
     humanInvolvement: '여러 안 중 의미 있는 것을 선택',
     checkpoint: '다양성이 실제로 확보됐는지, 변주가 편향되지 않았는지',
-    example: '3. 대표 화면 시안 — 병렬 컨셉 생성',
+    example: '4. 대표 화면 시안 — 병렬 컨셉 생성',
   },
   {
     level: 'human-own',
@@ -40,7 +40,7 @@ export const delegationLevels: DelegationInfo[] = [
     definition: 'AI는 참고자료만 제공, 결정과 책임은 사람',
     humanInvolvement: '처음부터 끝까지 사람이 주도',
     checkpoint: '판단 근거가 기록(Decision Log)으로 남았는지',
-    example: '2. PRD 목표·우선순위 확정 · 게이트 심사 ①·② · 8. Decision Log 기록',
+    example: '1. 기존 자산 확인 · 3. PRD 목표·우선순위 확정 · 게이트 심사 ①·② · 9. Decision Log 기록',
   },
 ]
 
@@ -73,12 +73,63 @@ export interface WorkflowStage {
 
 export const workflows: WorkflowStage[] = [
   {
-    id: 'research',
+    id: 'foundation',
     order: 1,
     kind: 'stage',
+    name: 'AI Context Foundation 구축',
+    summary: 'AI가 팀의 맥락을 이해할 수 있도록 리스크 기준과 지식 문서 틀을 먼저 준비한다.',
+    input: '(시작 단계) 프로젝트 킥오프 — 팀 목표, 기존 브랜드·디자인 자산(있다면)',
+    deliverables: [
+      {
+        name: '기존 자산 확인 (선택)',
+        level: 'human-own',
+        aiDoes: '제공된 기존 자료(브랜드 원칙, 디자인 시스템, 리서치)를 이후 단계의 컨텍스트로 참고',
+        humanDoes: '기존 자산이 있으면 수집해 전달, 없으면 생략',
+        tools: ['Notion'],
+      },
+      {
+        name: 'Risk Register 초안',
+        level: 'augment',
+        aiDoes: '개인정보·편향·저작권·과신(AI 결과 자동 반영) 리스크 후보 제시',
+        humanDoes: '우리 프로젝트 맥락에 맞게 리스크 확정',
+        tools: ['ChatGPT / Claude'],
+      },
+      {
+        name: '지식 문서 틀 준비',
+        level: 'automate',
+        aiDoes: 'Research Wiki·Design System·Decision Log 빈 템플릿(마크다운) 생성',
+        humanDoes: '템플릿 구조만 확인',
+        tools: ['Notion'],
+      },
+    ],
+    howTo: [
+      '기존 브랜드 원칙·디자인 시스템·리서치 자료가 있는지 확인, 있으면 AI에 참고자료로 전달',
+      'AI에게 이 프로젝트에서 흔한 리스크(개인정보·편향·저작권·과신) 후보를 요청',
+      'Research Wiki·Design System·Decision Log 문서 틀을 미리 만들어 다음 단계부터 바로 채울 수 있게 준비',
+    ],
+    prompts: [
+      {
+        title: 'Risk Register 초안 생성',
+        when: '프로젝트 시작 전 AI 협업 리스크를 미리 짚어둘 때',
+        prompt:
+          '이 프로젝트는 [프로젝트 한 줄 설명]이야. AI와 협업하면서 생길 수 있는 리스크를 개인정보, 편향, 저작권, AI 결과 과신(자동 반영) 4개 카테고리로 나눠서 각각 구체적인 시나리오와 대응 방법을 제안해줘. 일반론 말고 이 프로젝트 맥락에 맞게 작성해줘.\n\n[프로젝트 설명]\n[다루는 데이터 종류: 예) 사용자 인터뷰 녹음, 경쟁사 리서치 등]',
+      },
+      {
+        title: '지식 문서 틀 생성',
+        when: 'Research Wiki/Design System/Decision Log 템플릿을 처음 만들 때',
+        prompt:
+          '아래 3개 문서의 마크다운 템플릿을 만들어줘 (내용은 비워두고 구조만): 1) Research Wiki — 섹션: 인터뷰 요약, VOC, 경쟁사 분석, 시장 맥락 2) Design System 문서 — 섹션: 토큰, 컴포넌트, 금지 패턴 3) Decision Log — 섹션: 결정 사항, 선택 이유, 버린 대안, 재검토 조건. 각 섹션 제목만 잡고 예시 문장은 하나씩만 넣어줘.',
+      },
+    ],
+    checkpoint: '리스크가 프로젝트 맥락에 맞게 구체적인지, 문서 틀이 다음 단계에서 바로 쓸 수 있는 형태인지',
+  },
+  {
+    id: 'research',
+    order: 2,
+    kind: 'stage',
     name: '자료 수집·분석',
-    summary: '요구사항, VOC, 경쟁사 자료를 모아 1차로 정리한다.',
-    input: '(시작 단계) 인터뷰·회의 녹음, 위키·문서, VOC, 경쟁사 자료 등 원시 자료',
+    summary: '요구사항, VOC, 경쟁사 자료를 모아 Research Wiki에 구조화된 맥락으로 정리한다.',
+    input: 'Step 1에서 준비된 지식 문서 틀·Risk Register + 인터뷰·회의 녹음, 위키·문서, VOC, 경쟁사 자료 등 원시 자료',
     deliverables: [
       {
         name: '전사',
@@ -88,11 +139,11 @@ export const workflows: WorkflowStage[] = [
         tools: ['Clova Note'],
       },
       {
-        name: '그룹핑·분석 요약',
+        name: '그룹핑·분석 → Research Wiki 구조화',
         level: 'augment',
-        aiDoes: '유사 항목 그룹핑, 중복 정리, 패턴 분석 및 1차 요약',
-        humanDoes: '그룹핑·분석 결과 검토, 편향·맥락 누락 확인',
-        tools: ['ChatGPT / Claude'],
+        aiDoes: '유사 항목 그룹핑, 중복 정리, 패턴 분석 후 Research Wiki 템플릿 형식(주제별 섹션·출처·인용)으로 구조화',
+        humanDoes: '구조화된 내용 검토, 편향·맥락 누락 확인',
+        tools: ['ChatGPT / Claude', 'Notion'],
       },
     ],
     howTo: [
@@ -100,6 +151,7 @@ export const workflows: WorkflowStage[] = [
       '인터뷰 녹음/회의록을 AI에게 전사·요약 요청',
       '여러 소스(VOC, 경쟁사 리뷰, 요구사항 문서)를 한 표로 통합',
       "AI가 뽑은 패턴에 대해 '왜 그렇게 판단했는지' 되물어 검증",
+      '검증된 분석 결과를 Step 1에서 만든 Research Wiki 템플릿에 실제로 채워 넣기',
     ],
     prompts: [
       {
@@ -126,16 +178,22 @@ export const workflows: WorkflowStage[] = [
         prompt:
           "방금 네가 정리한 인사이트에 대해 스스로 점검해줘: 1) 특정 소스나 응답자에 과도하게 의존하고 있지 않은지 2) 표본이 적어 일반화하기 위험한 항목은 무엇인지 3) 반대되거나 소수인 의견은 무엇이었는지 목록으로 알려줘.",
       },
+      {
+        title: 'Research Wiki 항목 작성',
+        when: '검증까지 끝난 분석 결과를 Research Wiki에 실제로 채워 넣을 때',
+        prompt:
+          "아래 분석 결과를 Research Wiki 템플릿 형식에 맞춰 정리해줘. 섹션: 1) 인터뷰 요약(주제별 그룹 + 인용) 2) VOC 3) 경쟁사 분석 4) 시장 맥락. 각 항목마다 출처와 날짜를 표기해서, 다음 단계에서 이 문서만 보고도 근거를 추적할 수 있게 해줘. 해당 없는 섹션은 '자료 없음'이라고 표시해줘.\n\n[검증된 분석 결과 붙여넣기]",
+      },
     ],
-    checkpoint: '원본 누락, 과잉 일반화, 표본 편향 여부',
+    checkpoint: '원본 누락, 과잉 일반화, 표본 편향 여부, Research Wiki 구조로 정리됐는지',
   },
   {
     id: 'structure',
-    order: 2,
+    order: 3,
     kind: 'stage',
     name: '구조·스펙 정의',
     summary: 'PRD부터 정보구조, 유저플로우, 화면별 기능명세까지 — 화면을 그리기 전 모든 것을 정리한다.',
-    input: 'Step 1의 「그룹핑·분석 요약」 — 검토를 마친 리서치 인사이트',
+    input: 'Step 2에서 채워진 Research Wiki — 구조화된 리서치 인사이트',
     deliverables: [
       {
         name: 'PRD 초안',
@@ -217,11 +275,11 @@ export const workflows: WorkflowStage[] = [
   },
   {
     id: 'concept',
-    order: 3,
+    order: 4,
     kind: 'stage',
     name: '대표 화면 시안',
     summary: '스펙을 바탕으로 대표 화면의 구조(와이어프레임)를 먼저 잡고, 그 위에 여러 톤·스타일을 병렬 탐색한다.',
-    input: 'Step 2의 「화면별 기능명세서」·「유저플로우」·「범위·우선순위 확정」 결과',
+    input: 'Step 3의 「화면별 기능명세서」·「유저플로우」·「범위·우선순위 확정」 결과',
     deliverables: [
       {
         name: '대표 화면 와이어프레임',
@@ -275,11 +333,11 @@ export const workflows: WorkflowStage[] = [
   },
   {
     id: 'gate-1',
-    order: 4,
+    order: 5,
     kind: 'gate',
     name: '게이트 심사 ①',
     summary: '대표 시안을 최종 확정하고 판단 근거를 기록한다.',
-    input: 'Step 3의 「병렬 컨셉」 후보들과 각 컨셉의 리스크·트레이드오프 정리',
+    input: 'Step 4의 「병렬 컨셉」 후보들과 각 컨셉의 리스크·트레이드오프 정리',
     deliverables: [
       {
         name: '비교표',
@@ -313,7 +371,7 @@ export const workflows: WorkflowStage[] = [
   },
   {
     id: 'design-system',
-    order: 5,
+    order: 6,
     kind: 'stage',
     name: '디자인 시스템 구축',
     summary: '확정 시안을 토대로 토큰·컴포넌트 규칙을 만든다.',
@@ -357,11 +415,11 @@ export const workflows: WorkflowStage[] = [
   },
   {
     id: 'build-screens',
-    order: 6,
+    order: 7,
     kind: 'stage',
     name: '전체 화면 전개',
     summary: '분석 자료와 디자인 시스템을 기반으로 나머지 화면을 만든다.',
-    input: 'Step 5의 디자인 시스템(토큰·컴포넌트·금지 패턴) + Step 2의 화면별 기능명세서',
+    input: 'Step 6의 디자인 시스템(토큰·컴포넌트·금지 패턴) + Step 3의 화면별 기능명세서',
     deliverables: [
       {
         name: '화면 대량 생성',
@@ -401,11 +459,11 @@ export const workflows: WorkflowStage[] = [
   },
   {
     id: 'gate-2',
-    order: 7,
+    order: 8,
     kind: 'gate',
     name: '게이트 심사 ②',
     summary: '7개 기준으로 전체 결과물을 종합 심사한다.',
-    input: 'Step 6에서 완성된 전체 화면',
+    input: 'Step 7에서 완성된 전체 화면',
     deliverables: [
       {
         name: '게이트 체크리스트',
@@ -439,7 +497,7 @@ export const workflows: WorkflowStage[] = [
   },
   {
     id: 'launch',
-    order: 8,
+    order: 9,
     kind: 'stage',
     name: '출시·기록',
     summary: '출시하고 결정 이유를 지식 기반에 남긴다.',

@@ -2,17 +2,23 @@ import { Bot, User, ListChecks, Wrench, ArrowDownToLine } from 'lucide-react'
 import type { WorkflowStage } from '../data/workflows'
 import { DelegationBadge } from './DelegationBadge'
 import { PromptCard } from './PromptCard'
+import { StepBadge } from './StepBadge'
 
 export function WorkflowDetail({ stage }: { stage: WorkflowStage }) {
   return (
-    <div className="max-w-2xl">
-      <span className="text-xs font-medium text-gray-400">
-        {stage.kind === 'gate' ? 'GATE' : `STEP ${stage.order}`}
-      </span>
-      <h1 className="text-2xl font-semibold text-gray-900">{stage.name}</h1>
+    <div>
+      <div className="flex items-center gap-3">
+        <StepBadge order={stage.order} isGate={stage.kind === 'gate'} />
+        <div>
+          <span className="text-xs font-medium text-gray-400">
+            {stage.kind === 'gate' ? 'GATE' : `STEP ${stage.order}`}
+          </span>
+          <h1 className="text-2xl font-semibold text-gray-900">{stage.name}</h1>
+        </div>
+      </div>
       <p className="mt-1.5 text-sm text-gray-600">{stage.summary}</p>
 
-      <div className="mt-3 flex items-start gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+      <div className="mt-3 flex items-start gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
         <ArrowDownToLine size={14} className="shrink-0 mt-0.5 text-gray-400" />
         <p className="text-xs text-gray-600">
           <span className="font-medium text-gray-500">이전 단계에서 받는 것 — </span>
@@ -24,14 +30,17 @@ export function WorkflowDetail({ stage }: { stage: WorkflowStage }) {
         <h2 className="text-sm font-semibold text-gray-900 mb-2">작업별 AI·사람 역할</h2>
         <div className="space-y-2">
           {stage.deliverables.map((d) => (
-            <div key={d.name} className="rounded-lg border border-gray-200 p-4">
+            <div
+              key={d.name}
+              className="rounded-xl border border-gray-200 p-5 transition-shadow hover:shadow-md"
+            >
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-gray-900">{d.name}</span>
                 <DelegationBadge level={d.level} />
               </div>
               <div className="mt-2.5 grid md:grid-cols-2 gap-2.5">
                 <div className="flex gap-1.5 text-sm text-gray-700">
-                  <Bot size={15} className="shrink-0 mt-0.5 text-indigo-600" />
+                  <Bot size={15} className="shrink-0 mt-0.5 text-[var(--brand)]" />
                   <span>{d.aiDoes}</span>
                 </div>
                 <div className="flex gap-1.5 text-sm text-gray-700">
@@ -62,7 +71,7 @@ export function WorkflowDetail({ stage }: { stage: WorkflowStage }) {
         <ol className="space-y-1.5">
           {stage.howTo.map((step, i) => (
             <li key={i} className="flex gap-2 text-sm text-gray-700">
-              <span className="shrink-0 text-indigo-600 font-medium">{i + 1}.</span>
+              <span className="shrink-0 text-[var(--brand)] font-medium">{i + 1}.</span>
               {step}
             </li>
           ))}
@@ -78,7 +87,7 @@ export function WorkflowDetail({ stage }: { stage: WorkflowStage }) {
         </div>
       </div>
 
-      <div className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
+      <div className="mt-6 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
         <ListChecks size={16} className="shrink-0 mt-0.5 text-amber-700" />
         <div>
           <div className="text-sm font-semibold text-amber-800">검토 체크포인트</div>

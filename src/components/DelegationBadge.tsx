@@ -1,16 +1,16 @@
 import type { DelegationLevel } from '../data/workflows'
 
 const STYLES: Record<DelegationLevel, string> = {
-  automate: 'bg-indigo-600 text-white border-indigo-600',
-  augment: 'bg-indigo-50 text-indigo-700 border-indigo-300',
-  amplify: 'bg-indigo-50 text-indigo-700 border-indigo-300 border-dashed',
+  automate: 'bg-[var(--brand)] text-white border-[var(--brand)]',
+  augment: 'bg-[var(--brand-light)] text-[var(--brand-dark)] border-[var(--brand-border)]',
+  amplify: 'bg-[var(--brand-light)] text-[var(--brand-dark)] border-[var(--brand-border)] border-dashed',
   'human-own': 'bg-white text-gray-600 border-gray-300',
 }
 
 const DOT_STYLES: Record<DelegationLevel, string> = {
-  automate: 'bg-indigo-600',
-  augment: 'bg-indigo-300',
-  amplify: 'bg-indigo-300',
+  automate: 'bg-[var(--brand)]',
+  augment: 'bg-[var(--brand-border)]',
+  amplify: 'bg-[var(--brand-border)]',
   'human-own': 'bg-gray-300',
 }
 
